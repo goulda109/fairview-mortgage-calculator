@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fairview Mortgages - Mortgage Calculator</title>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            color: #1a2a3a;
+            min-height: 100vh;
+        }
+        .header {
+            background: #fff;
+            padding: 20px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            border-bottom: 3px solid #e8941a;
+        }
+        .header img { height: 60px; }
+        .header h1 { color: #1a3a5c; font-size: 22px; font-weight: 600; }
+        .container {
+            max-width: 1100px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        }
+        .card h2 {
+            color: #1a3a5c;
+            font-size: 20px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e8941a;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #1a3a5c;
+            font-size: 14px;
+        }
+        .form-group input, .form-group select {
+            padding: 12px 14px;
+            border: 2px solid #dde3ea;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: border-color 0.2s;
+        }
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #e8941a;
+        }
+        .form-group .input-prefix {
+            position: relative;
+        }
+        .form-group .input-prefix::before {
+            content: '$';
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #888;
+            font-size: 15px;
+        }
+        .form-group .input-prefix input {
+            padding-left: 28px;
+            width: 100%;
+        }
+        .form-group .input-suffix {
+            position: relative;
+        }
+        .form-group .input-suffix::after {
+            content: '%';
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #888;
+            font-size: 15px;
+        }
+        .form-group .input-suffix input {
+            padding-right: 28px;
+            width: 100%;
+        }
+        .btn {
+            padding: 14px 32px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-primary {
+            background: #e8941a;
+            color: #fff;
+        }
+        .btn-primary:hover { background: #d17f0e; }
+        .btn-secondary {
+            background: #1a3a5c;
+            color: #fff;
+        }
+        .btn-secondary:hover { background: #0f2840; }
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .result-box {
+            background: linear-gradient(135deg, #1a3a5c 0%, #244d75 100%);
+            border-radius: 10px;
+            padding: 18px;
+            color: #fff;
+            text-align: center;
+        }
+        .result-box.highlight {
+            background: linear-gradient(135deg, #e8941a 0%, #f0a840 100%);
+        }
+        .result-box .label {
+            font-size: 12px;
+            opacity: 0.85;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .result-box .value {
+            font-size: 24px;
+            font-weight: 700;
+            margin-top: 6px;
+        }
+        .result-box .sub {
+            font-size: 11px;
+            opacity: 0.7;
+            margin-top: 4px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        table thead th {
+            background: #1a3a5c;
+            color: #fff;
+            padding: 10px 12px;
+            text-align: right;
+            font-weight: 600;
+            font-size: 12px;
+        }
+        table thead th:first-child { text-align: center; border-radius: 8px 0 0 0; }
+        table thead th:last-child { border-radius: 0 8px 0 0; }
+        table tbody td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #eef1f5;
+            text-align: right;
+        }
+        table tbody td:first-child { text-align: center; }
+        table tbody tr:hover { background: #f8f9fb; }
+        table tbody tr.year-row {
+            background: #eef3f8;
+            font-weight: 600;
+        }
+        .hidden { display: none; }
+        .disclaimer {
+            font-size: 11px;
+            color: #888;
+            margin-top: 15px;
+            line-height: 1.5;
+        }
+        .client-info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        @media (max-width: 768px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .results-grid { grid-template-columns: 1fr 1fr; }
+            .client-info-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <img src="data:image/webp;base64,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" alt="Fairview Mortgages" id="logoImg">
+    <h1>Mortgage Payment Calculator</h1>
+</div>
+
+<div class="container">
+    <!-- Client Info -->
+    <div class="card">
+        <h2>Client Information</h2>
+        <div class="client-info-grid">
+            <div class="form-group">
+                <label>Client Name</label>
+                <input type="text" id="clientName" placeholder="Full Name">
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="clientEmail" placeholder="email@example.com">
+            </div>
+            <div class="form-group">
+                <label>Phone</label>
+                <input type="tel" id="clientPhone" placeholder="(555) 555-5555">
+            </div>
+        </div>
+        <div class="form-group" style="max-width:400px">
+            <label>Property Address</label>
+            <input type="text" id="propertyAddress" placeholder="123 Main St, City, Province">
+        </div>
+    </div>
+
+    <!-- Calculator Inputs -->
+    <div class="card">
+        <h2>Mortgage Details</h2>
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Purchase Price</label>
+                <div class="input-prefix">
+                    <input type="number" id="purchasePrice" value="500000" step="1000">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Down Payment</label>
+                <div class="input-prefix">
+                    <input type="number" id="downPayment" value="100000" step="1000">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Annual Interest Rate</label>
+                <div class="input-suffix">
+                    <input type="number" id="interestRate" value="4.79" step="0.01">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Amortization Period</label>
+                <select id="amortization">
+                    <option value="25" selected>25 Years</option>
+                    <option value="30">30 Years</option>
+                    <option value="20">20 Years</option>
+                    <option value="15">15 Years</option>
+                    <option value="10">10 Years</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Payment Frequency</label>
+                <select id="paymentFrequency">
+                    <option value="12">Monthly</option>
+                    <option value="26">Bi-Weekly</option>
+                    <option value="52">Weekly</option>
+                    <option value="24">Semi-Monthly</option>
+                    <option value="26.089">Accelerated Bi-Weekly</option>
+                    <option value="52.178">Accelerated Weekly</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Mortgage Term</label>
+                <select id="mortgageTerm">
+                    <option value="5" selected>5 Years</option>
+                    <option value="4">4 Years</option>
+                    <option value="3">3 Years</option>
+                    <option value="2">2 Years</option>
+                    <option value="1">1 Year</option>
+                </select>
+            </div>
+        </div>
+        <div class="btn-group">
+            <button class="btn btn-primary" onclick="calculate()">Calculate</button>
+            <button class="btn btn-secondary" onclick="generatePDF()">Download PDF</button>
+        </div>
+    </div>
+
+    <!-- Results -->
+    <div id="resultsSection" class="hidden">
+        <div class="card">
+            <h2>Payment Summary</h2>
+            <div class="results-grid">
+                <div class="result-box highlight">
+                    <div class="label">Payment Amount</div>
+                    <div class="value" id="resPayment">--</div>
+                    <div class="sub" id="resFreqLabel">Monthly</div>
+                </div>
+                <div class="result-box">
+                    <div class="label">Mortgage Amount</div>
+                    <div class="value" id="resMortgage">--</div>
+                    <div class="sub">Principal</div>
+                </div>
+                <div class="result-box">
+                    <div class="label">Total Interest (Term)</div>
+                    <div class="value" id="resInterestTerm">--</div>
+                    <div class="sub" id="resTermLabel">5-Year Term</div>
+                </div>
+                <div class="result-box">
+                    <div class="label">Total Cost (Amortization)</div>
+                    <div class="value" id="resTotalCost">--</div>
+                    <div class="sub" id="resAmortLabel">Over 25 Years</div>
+                </div>
+            </div>
+
+            <!-- CMHC Insurance Notice -->
+            <div id="cmhcNotice" class="hidden" style="background:#fff8ee; border:1px solid #e8941a; border-radius:8px; padding:15px; margin-bottom:20px;">
+                <strong style="color:#e8941a;">CMHC Mortgage Insurance Required</strong>
+                <p style="font-size:13px; margin-top:5px;">
+                    Down payment is less than 20%. Estimated CMHC insurance premium: <strong id="cmhcPremium">--</strong>
+                    (added to mortgage). Total insured mortgage: <strong id="cmhcTotal">--</strong>
+                </p>
+            </div>
+
+            <div class="disclaimer">
+                * Calculations are based on Canadian semi-annual compounding (as required by the Bank Act of Canada).
+                Actual payments may vary. This is an estimate only and does not constitute a mortgage commitment or approval.
+                Contact Fairview Mortgages for a personalized assessment.
+            </div>
+        </div>
+
+        <!-- Amortization Schedule -->
+        <div class="card">
+            <h2>Amortization Schedule (Annual Summary)</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Year</th>
+                        <th>Beginning Balance</th>
+                        <th>Total Payments</th>
+                        <th>Principal Paid</th>
+                        <th>Interest Paid</th>
+                        <th>Ending Balance</th>
+                    </tr>
+                </thead>
+                <tbody id="scheduleBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+// Canadian mortgage: semi-annual compounding, convert to payment frequency effective rate
+function getEffectiveRate(annualRate, paymentsPerYear) {
+    // Canadian: semi-annual compounding
+    // Effective semi-annual rate
+    const semiAnnualRate = annualRate / 2;
+    // Convert to per-payment rate
+    // (1 + semi)^2 = (1 + r)^n => r = (1 + semi)^(2/n) - 1
+    return Math.pow(1 + semiAnnualRate, 2 / paymentsPerYear) - 1;
+}
+
+function getCMHCPremium(ltvPercent) {
+    if (ltvPercent <= 65) return 0.006;
+    if (ltvPercent <= 75) return 0.017;
+    if (ltvPercent <= 80) return 0.024;
+    if (ltvPercent <= 85) return 0.028;
+    if (ltvPercent <= 90) return 0.031;
+    if (ltvPercent <= 95) return 0.04;
+    return 0;
+}
+
+function formatCurrency(n) {
+    return '$' + n.toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+let calcResults = null;
+
+function calculate() {
+    const purchasePrice = parseFloat(document.getElementById('purchasePrice').value) || 0;
+    const downPayment = parseFloat(document.getElementById('downPayment').value) || 0;
+    const annualRate = parseFloat(document.getElementById('interestRate').value) / 100;
+    const amortYears = parseInt(document.getElementById('amortization').value);
+    const freqVal = parseFloat(document.getElementById('paymentFrequency').value);
+    const termYears = parseInt(document.getElementById('mortgageTerm').value);
+    const freqSelect = document.getElementById('paymentFrequency');
+    const freqLabel = freqSelect.options[freqSelect.selectedIndex].text;
+
+    let mortgageAmount = purchasePrice - downPayment;
+    const ltvPercent = (mortgageAmount / purchasePrice) * 100;
+
+    let cmhcInsurance = 0;
+    const needsCMHC = ltvPercent > 80 && purchasePrice <= 1500000;
+    if (needsCMHC) {
+        const premiumRate = getCMHCPremium(ltvPercent);
+        cmhcInsurance = mortgageAmount * premiumRate;
+        mortgageAmount += cmhcInsurance;
+    }
+
+    // Determine actual payments per year (for accelerated, use base)
+    let isAccelerated = false;
+    let paymentsPerYear;
+    if (freqVal === 26.089) {
+        paymentsPerYear = 26;
+        isAccelerated = true;
+    } else if (freqVal === 52.178) {
+        paymentsPerYear = 52;
+        isAccelerated = true;
+    } else {
+        paymentsPerYear = freqVal;
+    }
+
+    const r = getEffectiveRate(annualRate, paymentsPerYear);
+    const totalPayments = amortYears * paymentsPerYear;
+
+    let payment;
+    if (isAccelerated) {
+        // Accelerated: calculate monthly payment, then divide
+        const rMonthly = getEffectiveRate(annualRate, 12);
+        const nMonthly = amortYears * 12;
+        const monthlyPayment = mortgageAmount * (rMonthly * Math.pow(1 + rMonthly, nMonthly)) / (Math.pow(1 + rMonthly, nMonthly) - 1);
+        if (paymentsPerYear === 26) {
+            payment = monthlyPayment / 2;
+        } else {
+            payment = monthlyPayment / 4;
+        }
+    } else {
+        payment = mortgageAmount * (r * Math.pow(1 + r, totalPayments)) / (Math.pow(1 + r, totalPayments) - 1);
+    }
+
+    // Build amortization schedule (annual summary)
+    let balance = mortgageAmount;
+    const schedule = [];
+    let totalInterest = 0;
+    let totalPrincipal = 0;
+    let termInterest = 0;
+    let termPrincipal = 0;
+    let termEndBalance = 0;
+
+    for (let year = 1; year <= amortYears; year++) {
+        let yearPrincipal = 0;
+        let yearInterest = 0;
+        const beginBalance = balance;
+
+        for (let p = 0; p < paymentsPerYear; p++) {
+            if (balance <= 0) break;
+            const interestPayment = balance * r;
+            let principalPayment = payment - interestPayment;
+            if (principalPayment > balance) principalPayment = balance;
+            balance -= principalPayment;
+            if (balance < 0) balance = 0;
+            yearPrincipal += principalPayment;
+            yearInterest += interestPayment;
+        }
+
+        totalInterest += yearInterest;
+        totalPrincipal += yearPrincipal;
+
+        if (year <= termYears) {
+            termInterest += yearInterest;
+            termPrincipal += yearPrincipal;
+            termEndBalance = balance;
+        }
+
+        schedule.push({
+            year,
+            beginBalance,
+            totalPayment: yearPrincipal + yearInterest,
+            principal: yearPrincipal,
+            interest: yearInterest,
+            endBalance: balance
+        });
+
+        if (balance <= 0) break;
+    }
+
+    // Store results for PDF
+    calcResults = {
+        clientName: document.getElementById('clientName').value,
+        clientEmail: document.getElementById('clientEmail').value,
+        clientPhone: document.getElementById('clientPhone').value,
+        propertyAddress: document.getElementById('propertyAddress').value,
+        purchasePrice,
+        downPayment,
+        mortgageAmount,
+        annualRate: annualRate * 100,
+        amortYears,
+        termYears,
+        freqLabel,
+        paymentsPerYear,
+        payment,
+        totalInterest,
+        totalPrincipal,
+        termInterest,
+        termPrincipal,
+        termEndBalance,
+        needsCMHC,
+        cmhcInsurance,
+        ltvPercent,
+        schedule
+    };
+
+    // Update UI
+    document.getElementById('resPayment').textContent = formatCurrency(payment);
+    document.getElementById('resFreqLabel').textContent = freqLabel;
+    document.getElementById('resMortgage').textContent = formatCurrency(mortgageAmount);
+    document.getElementById('resInterestTerm').textContent = formatCurrency(termInterest);
+    document.getElementById('resTermLabel').textContent = termYears + '-Year Term';
+    document.getElementById('resTotalCost').textContent = formatCurrency(totalInterest + mortgageAmount);
+    document.getElementById('resAmortLabel').textContent = 'Over ' + amortYears + ' Years';
+
+    if (needsCMHC) {
+        document.getElementById('cmhcNotice').classList.remove('hidden');
+        document.getElementById('cmhcPremium').textContent = formatCurrency(cmhcInsurance);
+        document.getElementById('cmhcTotal').textContent = formatCurrency(mortgageAmount);
+    } else {
+        document.getElementById('cmhcNotice').classList.add('hidden');
+    }
+
+    // Build schedule table
+    const tbody = document.getElementById('scheduleBody');
+    tbody.innerHTML = '';
+    schedule.forEach(row => {
+        const tr = document.createElement('tr');
+        if (row.year === termYears) tr.classList.add('year-row');
+        tr.innerHTML = `
+            <td>${row.year}</td>
+            <td>${formatCurrency(row.beginBalance)}</td>
+            <td>${formatCurrency(row.totalPayment)}</td>
+            <td>${formatCurrency(row.principal)}</td>
+            <td>${formatCurrency(row.interest)}</td>
+            <td>${formatCurrency(row.endBalance)}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    document.getElementById('resultsSection').classList.remove('hidden');
+    document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+}
+
+function generatePDF() {
+    if (!calcResults) {
+        calculate();
+    }
+    const r = calcResults;
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('p', 'mm', 'letter');
+    const pageWidth = 215.9;
+    const pageHeight = 279.4;
+    const margin = 18;
+    const contentWidth = pageWidth - margin * 2;
+    let y = margin;
+
+    const blue = [26, 58, 92];
+    const orange = [232, 148, 26];
+    const darkText = [30, 30, 30];
+    const lightGray = [245, 247, 250];
+    const white = [255, 255, 255];
+
+    // ---- HEADER ----
+    // Logo
+    const logoImg = document.getElementById('logoImg');
+    const canvas = document.createElement('canvas');
+    canvas.width = logoImg.naturalWidth;
+    canvas.height = logoImg.naturalHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(logoImg, 0, 0);
+    const logoData = canvas.toDataURL('image/png');
+
+    const logoH = 16;
+    const logoW = logoH * (logoImg.naturalWidth / logoImg.naturalHeight);
+    doc.addImage(logoData, 'PNG', margin, y, logoW, logoH);
+
+    // Title on right
+    doc.setFontSize(18);
+    doc.setTextColor(...blue);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Mortgage Payment Breakdown', pageWidth - margin, y + 7, { align: 'right' });
+    doc.setFontSize(10);
+    doc.setTextColor(120, 120, 120);
+    doc.setFont('helvetica', 'normal');
+    const today = new Date().toLocaleDateString('en-CA', { year: 'numeric', month: 'long', day: 'numeric' });
+    doc.text('Prepared: ' + today, pageWidth - margin, y + 13, { align: 'right' });
+
+    y += logoH + 6;
+
+    // Orange line
+    doc.setDrawColor(...orange);
+    doc.setLineWidth(1);
+    doc.line(margin, y, pageWidth - margin, y);
+    y += 8;
+
+    // ---- CLIENT INFO ----
+    if (r.clientName || r.propertyAddress) {
+        doc.setFontSize(12);
+        doc.setTextColor(...blue);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Prepared For', margin, y);
+        y += 6;
+        doc.setFontSize(10);
+        doc.setTextColor(...darkText);
+        doc.setFont('helvetica', 'normal');
+        if (r.clientName) { doc.text('Client: ' + r.clientName, margin, y); y += 5; }
+        if (r.clientEmail) { doc.text('Email: ' + r.clientEmail, margin, y); y += 5; }
+        if (r.clientPhone) { doc.text('Phone: ' + r.clientPhone, margin, y); y += 5; }
+        if (r.propertyAddress) { doc.text('Property: ' + r.propertyAddress, margin, y); y += 5; }
+        y += 4;
+    }
+
+    // ---- MORTGAGE DETAILS TABLE ----
+    doc.setFontSize(12);
+    doc.setTextColor(...blue);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Mortgage Details', margin, y);
+    y += 3;
+
+    const detailsData = [
+        ['Purchase Price', formatCurrency(r.purchasePrice), 'Amortization', r.amortYears + ' Years'],
+        ['Down Payment', formatCurrency(r.downPayment) + ' (' + r.ltvPercent.toFixed(1) + '% LTV)', 'Mortgage Term', r.termYears + ' Years'],
+        ['Mortgage Amount', formatCurrency(r.mortgageAmount), 'Payment Frequency', r.freqLabel],
+        ['Interest Rate', r.annualRate.toFixed(2) + '%', 'Compounding', 'Semi-Annual (Canadian)']
+    ];
+
+    if (r.needsCMHC) {
+        detailsData.push(['CMHC Insurance', formatCurrency(r.cmhcInsurance), 'Insured Mortgage', formatCurrency(r.mortgageAmount)]);
+    }
+
+    doc.autoTable({
+        startY: y,
+        body: detailsData,
+        theme: 'plain',
+        styles: { fontSize: 9, cellPadding: 2.5, textColor: darkText },
+        columnStyles: {
+            0: { fontStyle: 'bold', textColor: blue, cellWidth: 38 },
+            1: { cellWidth: 52 },
+            2: { fontStyle: 'bold', textColor: blue, cellWidth: 38 },
+            3: { cellWidth: 52 }
+        },
+        margin: { left: margin, right: margin },
+        alternateRowStyles: { fillColor: lightGray }
+    });
+
+    y = doc.lastAutoTable.finalY + 8;
+
+    // ---- PAYMENT SUMMARY BOXES ----
+    doc.setFontSize(12);
+    doc.setTextColor(...blue);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Payment Summary', margin, y);
+    y += 5;
+
+    const boxW = (contentWidth - 9) / 4;
+    const boxH = 22;
+    const boxes = [
+        { label: r.freqLabel + ' Payment', value: formatCurrency(r.payment), color: orange },
+        { label: 'Total Interest (Term)', value: formatCurrency(r.termInterest), color: blue },
+        { label: 'Balance at Term End', value: formatCurrency(r.termEndBalance), color: blue },
+        { label: 'Total Cost (Amort.)', value: formatCurrency(r.totalInterest + r.mortgageAmount), color: blue }
+    ];
+
+    boxes.forEach((box, i) => {
+        const bx = margin + i * (boxW + 3);
+        doc.setFillColor(...box.color);
+        doc.roundedRect(bx, y, boxW, boxH, 3, 3, 'F');
+        doc.setFontSize(7);
+        doc.setTextColor(255, 255, 255);
+        doc.setFont('helvetica', 'normal');
+        doc.text(box.label.toUpperCase(), bx + boxW / 2, y + 7, { align: 'center' });
+        doc.setFontSize(13);
+        doc.setFont('helvetica', 'bold');
+        doc.text(box.value, bx + boxW / 2, y + 16, { align: 'center' });
+    });
+
+    y += boxH + 10;
+
+    // ---- AMORTIZATION SCHEDULE ----
+    doc.setFontSize(12);
+    doc.setTextColor(...blue);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Amortization Schedule (Annual Summary)', margin, y);
+    y += 3;
+
+    const scheduleData = r.schedule.map(row => [
+        row.year.toString(),
+        formatCurrency(row.beginBalance),
+        formatCurrency(row.totalPayment),
+        formatCurrency(row.principal),
+        formatCurrency(row.interest),
+        formatCurrency(row.endBalance)
+    ]);
+
+    doc.autoTable({
+        startY: y,
+        head: [['Year', 'Opening Balance', 'Total Payments', 'Principal Paid', 'Interest Paid', 'Closing Balance']],
+        body: scheduleData,
+        theme: 'striped',
+        headStyles: {
+            fillColor: blue,
+            textColor: white,
+            fontStyle: 'bold',
+            fontSize: 8,
+            halign: 'right'
+        },
+        styles: {
+            fontSize: 8,
+            cellPadding: 2,
+            textColor: darkText,
+            halign: 'right'
+        },
+        columnStyles: {
+            0: { halign: 'center', cellWidth: 14 }
+        },
+        margin: { left: margin, right: margin },
+        alternateRowStyles: { fillColor: lightGray },
+        didParseCell: function(data) {
+            // Highlight term end row
+            if (data.section === 'body' && data.row.index === r.termYears - 1) {
+                data.cell.styles.fillColor = [255, 243, 224];
+                data.cell.styles.fontStyle = 'bold';
+            }
+        }
+    });
+
+    y = doc.lastAutoTable.finalY + 6;
+
+    // ---- FOOTER ON EACH PAGE ----
+    const totalPages = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+        doc.setPage(i);
+        // Orange line
+        doc.setDrawColor(...orange);
+        doc.setLineWidth(0.5);
+        doc.line(margin, pageHeight - 18, pageWidth - margin, pageHeight - 18);
+        // Disclaimer
+        doc.setFontSize(7);
+        doc.setTextColor(140, 140, 140);
+        doc.setFont('helvetica', 'normal');
+        doc.text(
+            'This is an estimate only using Canadian semi-annual compounding and does not constitute a mortgage commitment. Contact Fairview Mortgages for details.',
+            pageWidth / 2, pageHeight - 13, { align: 'center', maxWidth: contentWidth }
+        );
+        doc.text(
+            'Fairview Mortgages  |  Page ' + i + ' of ' + totalPages,
+            pageWidth / 2, pageHeight - 8, { align: 'center' }
+        );
+    }
+
+    // Save
+    const clientSlug = r.clientName ? r.clientName.replace(/\s+/g, '_') + '_' : '';
+    doc.save('Fairview_Mortgage_Breakdown_' + clientSlug + new Date().toISOString().slice(0,10) + '.pdf');
+}
+
+// Auto-calculate on load if values exist
+document.addEventListener('DOMContentLoaded', () => {
+    calculate();
+});
+</script>
+
+</body>
+</html>
