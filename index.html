@@ -1541,10 +1541,10 @@
             background: linear-gradient(135deg, #24507a 0%, var(--brand-navy) 100%);
         }
 
-        /* ---- Tab nav: tidy grid (15 tabs = 3 clean rows of 5) ---- */
+        /* ---- Tab nav: tidy grid (16 tabs = 2 clean rows of 8) ---- */
         .tab-nav {
             display: grid;
-            grid-template-columns: repeat(5, 1fr);
+            grid-template-columns: repeat(8, 1fr);
             gap: 6px;
             padding: 8px;
             border: 1px solid var(--line);
@@ -1734,6 +1734,10 @@
         <button class="tab-btn" data-tab="construction" onclick="switchTab('construction')">
             <svg class="tab-icon" viewBox="0 0 24 24"><rect x="3" y="11" width="7" height="10"/><rect x="14" y="3" width="7" height="18"/><line x1="6" y1="14" x2="7" y2="14"/><line x1="6" y1="17" x2="7" y2="17"/><line x1="17" y1="6" x2="18" y2="6"/><line x1="17" y1="9" x2="18" y2="9"/><line x1="17" y1="12" x2="18" y2="12"/></svg>
             <span class="tab-label">Construction</span>
+        </button>
+        <button class="tab-btn" data-tab="rateholds" onclick="switchTab('rateholds')">
+            <svg class="tab-icon" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5"/><path d="M9 2h6"/><path d="M19 5l1.5 1.5"/></svg>
+            <span class="tab-label">Rate Holds</span>
         </button>
         <button class="tab-btn" data-tab="resources" onclick="switchTab('resources')">
             <svg class="tab-icon" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
@@ -4634,6 +4638,108 @@
     </div>
     <!-- ============ END NEW CONSTRUCTION TAB ============ -->
 
+    <!-- ============ RATE HOLDS TAB ============ -->
+    <div class="tab-content" id="tab-rateholds">
+        <div class="tab-intro">
+            <div class="intro-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5"/><path d="M9 2h6"/><path d="M19 5l1.5 1.5"/></svg></div>
+            <div>
+                <h3>Rate-Hold Tracker</h3>
+                <p>Log every client's rate hold and never let one lapse. Expiry countdowns are color-coded so the ones that need a call this week jump out. Stored locally in your browser.</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2><span class="h2-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8"/><path d="M8 12h8"/></svg></span>Add a Rate Hold</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Client Name</label>
+                    <input type="text" id="rhClient" placeholder="e.g. Marie Cormier">
+                </div>
+                <div class="form-group">
+                    <label>Lender</label>
+                    <input type="text" id="rhLender" placeholder="e.g. Scotiabank">
+                </div>
+                <div class="form-group">
+                    <label>Rate</label>
+                    <div class="input-suffix">
+                        <input type="number" id="rhRate" value="4.79" step="0.01">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Product</label>
+                    <select id="rhProduct">
+                        <option>5-yr Fixed</option>
+                        <option>3-yr Fixed</option>
+                        <option>1-yr Fixed</option>
+                        <option>5-yr Variable</option>
+                        <option>3-yr Variable</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Hold Start Date</label>
+                    <input type="date" id="rhStart">
+                </div>
+                <div class="form-group">
+                    <label>Hold Length</label>
+                    <select id="rhLength">
+                        <option value="30">30 days</option>
+                        <option value="45">45 days</option>
+                        <option value="60">60 days</option>
+                        <option value="90" selected>90 days</option>
+                        <option value="120">120 days</option>
+                    </select>
+                </div>
+                <div class="form-group" style="grid-column: 1 / -1;">
+                    <label>Notes (optional)</label>
+                    <input type="text" id="rhNotes" placeholder="e.g. pre-approval for spring purchase, waiting on appraisal">
+                </div>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="addRateHold()">Add Hold</button>
+                <button class="btn btn-secondary" onclick="generateRateHoldsPDF()">Download PDF List</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2><span class="h2-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5"/></svg></span>Active Holds</h2>
+            <div class="results-grid" style="margin-top:5px;">
+                <div class="result-box">
+                    <div class="label">Active Holds</div>
+                    <div class="value" id="rhStatActive">0</div>
+                </div>
+                <div class="result-box highlight">
+                    <div class="label">Expiring in 7 Days</div>
+                    <div class="value" id="rhStatUrgent">0</div>
+                    <div class="sub">call these clients now</div>
+                </div>
+                <div class="result-box">
+                    <div class="label">Next Expiry</div>
+                    <div class="value" id="rhStatNext">--</div>
+                    <div class="sub" id="rhStatNextSub">--</div>
+                </div>
+                <div class="result-box">
+                    <div class="label">Best Held Rate</div>
+                    <div class="value" id="rhStatBest">--</div>
+                    <div class="sub" id="rhStatBestSub">--</div>
+                </div>
+            </div>
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead>
+                        <tr><th>Status</th><th>Client</th><th>Lender</th><th>Rate</th><th>Product</th><th>Expires</th><th>Days Left</th><th>Notes</th><th></th></tr>
+                    </thead>
+                    <tbody id="rhTableBody"></tbody>
+                </table>
+            </div>
+            <div class="disclaimer">
+                * Stored only in this browser (localStorage) — not synced or backed up. Expired holds stay listed until you remove them,
+                since an expired hold is often the trigger for a re-quote conversation.
+            </div>
+        </div>
+    </div>
+    <!-- ============ END RATE HOLDS TAB ============ -->
+
     <!-- ============ RESOURCES TAB ============ -->
     <div class="tab-content" id="tab-resources">
         <div class="tab-intro">
@@ -4819,7 +4925,8 @@ function runActiveCalculate() {
         reverse: 'calculateReverse',
         investment: 'calculateInvestment',
         vacation: 'calculateVacation',
-        construction: 'calculateConstruction'
+        construction: 'calculateConstruction',
+        rateholds: 'renderRateHolds'
         // 'resources' has no calc — FAB Calculate is a no-op there.
     };
     const fnName = fns[activeTab];
@@ -4845,7 +4952,8 @@ const pdfFns = {
     reverse: 'generateReversePDF',
     investment: 'generateInvestmentPDF',
     vacation: 'generateVacationPDF',
-    construction: 'generateConstructionPDF'
+    construction: 'generateConstructionPDF',
+    rateholds: 'generateRateHoldsPDF'
 };
 
 function shareActivePDF() {
@@ -7655,6 +7763,145 @@ function buildScheduleAsync(payload) {
         w.postMessage({ id, type: 'buildSchedule', payload });
     });
 }
+
+// =====================================================
+// RATE-HOLD TRACKER (localStorage)
+// =====================================================
+const RH_KEY = 'fv:rateholds';
+
+function rhEsc(s) {
+    return String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+function loadRateHolds() {
+    try { return JSON.parse(localStorage.getItem(RH_KEY)) || []; } catch (e) { return []; }
+}
+
+function saveRateHolds(holds) {
+    try { localStorage.setItem(RH_KEY, JSON.stringify(holds)); } catch (e) {}
+}
+
+function rhExpiry(hold) {
+    const d = new Date(hold.start + 'T12:00:00');
+    d.setDate(d.getDate() + hold.length);
+    return d;
+}
+
+function rhDaysLeft(hold) {
+    return Math.ceil((rhExpiry(hold) - new Date()) / 86400000);
+}
+
+function addRateHold() {
+    const client = document.getElementById('rhClient').value.trim();
+    const lender = document.getElementById('rhLender').value.trim();
+    const rate = parseFloat(document.getElementById('rhRate').value) || 0;
+    const product = document.getElementById('rhProduct').value;
+    const start = document.getElementById('rhStart').value;
+    const length = parseInt(document.getElementById('rhLength').value);
+    const notes = document.getElementById('rhNotes').value.trim();
+    if (!client || !lender || !start || rate <= 0) {
+        alert('Client, lender, rate, and start date are required.');
+        return;
+    }
+    const holds = loadRateHolds();
+    holds.push({ id: Date.now(), client, lender, rate, product, start, length, notes });
+    saveRateHolds(holds);
+    document.getElementById('rhClient').value = '';
+    document.getElementById('rhNotes').value = '';
+    renderRateHolds();
+}
+
+function removeRateHold(id) {
+    saveRateHolds(loadRateHolds().filter(h => h.id !== id));
+    renderRateHolds();
+}
+
+function rhStatusBadge(daysLeft) {
+    let color, label;
+    if (daysLeft < 0) { color = '#6b7c93'; label = 'Expired'; }
+    else if (daysLeft <= 7) { color = '#c0392b'; label = 'Urgent'; }
+    else if (daysLeft <= 30) { color = '#e8941a'; label = 'Soon'; }
+    else { color = '#1d8348'; label = 'Active'; }
+    return `<span style="display:inline-block; padding:3px 10px; border-radius:10px; background:${color}; color:#fff; font-size:11px; font-weight:700; letter-spacing:0.3px;">${label}</span>`;
+}
+
+function renderRateHolds() {
+    const holds = loadRateHolds().map(h => ({ ...h, daysLeft: rhDaysLeft(h), expiry: rhExpiry(h) }))
+        .sort((a, b) => a.expiry - b.expiry);
+
+    const active = holds.filter(h => h.daysLeft >= 0);
+    const urgent = active.filter(h => h.daysLeft <= 7);
+    document.getElementById('rhStatActive').textContent = active.length;
+    document.getElementById('rhStatUrgent').textContent = urgent.length;
+    if (active.length) {
+        const next = active[0];
+        document.getElementById('rhStatNext').textContent = next.daysLeft + ' days';
+        document.getElementById('rhStatNextSub').textContent = next.client + ' — ' + next.lender;
+        const best = [...active].sort((a, b) => a.rate - b.rate)[0];
+        document.getElementById('rhStatBest').textContent = best.rate.toFixed(2) + '%';
+        document.getElementById('rhStatBestSub').textContent = best.client + ' — ' + best.product;
+    } else {
+        document.getElementById('rhStatNext').textContent = '--';
+        document.getElementById('rhStatNextSub').textContent = 'no active holds';
+        document.getElementById('rhStatBest').textContent = '--';
+        document.getElementById('rhStatBestSub').textContent = 'no active holds';
+    }
+
+    const tbody = document.getElementById('rhTableBody');
+    if (!holds.length) {
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:24px; color:#6b7c93;">No rate holds yet — add the first one above.</td></tr>';
+        return;
+    }
+    tbody.innerHTML = holds.map(h => `
+        <tr>
+            <td>${rhStatusBadge(h.daysLeft)}</td>
+            <td style="text-align:left; font-weight:600;">${rhEsc(h.client)}</td>
+            <td style="text-align:left;">${rhEsc(h.lender)}</td>
+            <td><strong>${h.rate.toFixed(2)}%</strong></td>
+            <td>${rhEsc(h.product)}</td>
+            <td>${h.expiry.toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
+            <td class="${h.daysLeft <= 7 ? 'delta-bad' : (h.daysLeft <= 30 ? '' : 'delta-good')}" style="font-weight:700;">${h.daysLeft < 0 ? Math.abs(h.daysLeft) + ' ago' : h.daysLeft}</td>
+            <td style="text-align:left; font-size:12px; color:#6b7c93; max-width:200px;">${rhEsc(h.notes)}</td>
+            <td><button onclick="removeRateHold(${h.id})" title="Remove" style="border:none; background:#fdecea; color:#c0392b; width:26px; height:26px; border-radius:6px; cursor:pointer; font-weight:700;">×</button></td>
+        </tr>
+    `).join('');
+}
+
+function generateRateHoldsPDF() {
+    const holds = loadRateHolds().map(h => ({ ...h, daysLeft: rhDaysLeft(h), expiry: rhExpiry(h) }))
+        .sort((a, b) => a.expiry - b.expiry);
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('p', 'mm', 'letter');
+    const pageWidth = 215.9, pageHeight = 279.4, margin = 18;
+    const contentWidth = pageWidth - margin * 2;
+    const blue = [26, 58, 92], darkText = [30, 30, 30], white = [255, 255, 255];
+
+    let y = pdfHeader(doc, 'Rate-Hold Pipeline', margin, pageWidth);
+    y += 4;
+
+    doc.autoTable({
+        startY: y,
+        head: [['Status', 'Client', 'Lender', 'Rate', 'Product', 'Hold Start', 'Expires', 'Days Left', 'Notes']],
+        body: holds.map(h => [
+            h.daysLeft < 0 ? 'EXPIRED' : (h.daysLeft <= 7 ? 'URGENT' : (h.daysLeft <= 30 ? 'Soon' : 'Active')),
+            h.client, h.lender, h.rate.toFixed(2) + '%', h.product,
+            h.start, h.expiry.toLocaleDateString('en-CA'), h.daysLeft < 0 ? '-' : h.daysLeft, h.notes || ''
+        ]),
+        theme: 'striped',
+        headStyles: { fillColor: blue, textColor: white, fontSize: 8 },
+        styles: { fontSize: 8, cellPadding: 2.5, textColor: darkText },
+        columnStyles: { 8: { fontSize: 7, textColor: [110, 110, 110] } },
+        margin: { left: margin, right: margin }
+    });
+
+    pdfFooter(doc, 'Internal broker worksheet generated ' + new Date().toLocaleDateString('en-CA') + '. Rate holds and expiry dates as recorded; confirm exact commitment terms with each lender.', pageWidth, pageHeight, margin, contentWidth);
+
+    pdfDeliver(doc, 'Fairview_RateHolds_' + new Date().toISOString().slice(0, 10) + '.pdf');
+}
+
+// Rate-holds init: default the start date to today and draw the saved list.
+document.getElementById('rhStart').valueAsDate = new Date();
+renderRateHolds();
 
 // =====================================================
 // VACATION / SECOND HOME
