@@ -1,6 +1,6 @@
 // Fairview Mortgage Calculator — service worker
 // Cache-first for static assets, network-first with cache fallback for everything else.
-const VERSION = 'fairview-v10';
+const VERSION = 'fairview-v11';
 const CORE = [
     '/',
     '/index.html',

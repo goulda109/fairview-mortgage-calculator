@@ -4746,6 +4746,9 @@
 
 <!-- Floating Action Bar -->
 <div class="fab" id="fab">
+    <button class="fab-icon-only" onclick="shareActivePDF()" title="Share / email the PDF report">
+        <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2 7 12 13 22 7"/></svg>
+    </button>
     <button class="fab-icon-only" onclick="window.print()" title="Print">
         <svg viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
     </button>
@@ -4821,6 +4824,79 @@ function runActiveCalculate() {
     };
     const fnName = fns[activeTab];
     if (fnName && typeof window[fnName] === 'function') window[fnName]();
+}
+
+// =====================================================
+// PDF DELIVERY — download, or share/email when share mode is set
+// =====================================================
+let pdfShareMode = false;
+
+const pdfFns = {
+    purchase: 'generatePDF',
+    compare: 'generateComparePDF',
+    affordability: 'generateAffordabilityPDF',
+    firsttime: 'generateFirstTimePDF',
+    rentvsbuy: 'generateRentVsBuyPDF',
+    closing: 'generateClosingPDF',
+    renewal: 'generateRenewalPDF',
+    porting: 'generatePortingPDF',
+    refinance: 'generateRefinancePDF',
+    heloc: 'generateHelocPDF',
+    reverse: 'generateReversePDF',
+    investment: 'generateInvestmentPDF',
+    vacation: 'generateVacationPDF',
+    construction: 'generateConstructionPDF'
+};
+
+function shareActivePDF() {
+    const fnName = pdfFns[activeTab];
+    if (!fnName || typeof window[fnName] !== 'function') return;
+    pdfShareMode = true;
+    window[fnName](); // pdfDeliver resets the flag
+}
+
+async function pdfDeliver(doc, filename) {
+    if (!pdfShareMode) {
+        doc.save(filename);
+        return;
+    }
+    pdfShareMode = false;
+
+    // Native share sheet (mobile + some desktops) — attaches the actual PDF.
+    try {
+        const blob = doc.output('blob');
+        const file = new File([blob], filename, { type: 'application/pdf' });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            await navigator.share({
+                files: [file],
+                title: 'Fairview Mortgages Report',
+                text: 'Your personalized mortgage report from Fairview Mortgages.'
+            });
+            return;
+        }
+    } catch (e) {
+        if (e && e.name === 'AbortError') return; // user closed the share sheet
+    }
+
+    // Fallback: download the PDF and open a pre-addressed email draft.
+    doc.save(filename);
+    const clientEmail = (document.getElementById('clientEmail').value || '').trim();
+    const clientName = (document.getElementById('clientName').value || '').trim();
+    const brokerName = (document.getElementById('brokerName').value || '').trim();
+    const brokerTitle = (document.getElementById('brokerTitle').value || '').trim();
+    const brokerPhone = (document.getElementById('brokerPhone').value || '').trim();
+    const signature = brokerName
+        ? '\n\n' + brokerName + (brokerTitle ? '\n' + brokerTitle : '') + '\nFairview Mortgages' + (brokerPhone ? '\n' + brokerPhone : '')
+        : '\n\nFairview Mortgages';
+    const subject = encodeURIComponent('Your mortgage report from Fairview Mortgages');
+    const body = encodeURIComponent(
+        'Hi' + (clientName ? ' ' + clientName.split(' ')[0] : '') + ',\n\n' +
+        'Thanks for taking the time to go through the numbers. Your personalized report is attached — ' +
+        'it covers everything we discussed, and I\'m happy to walk through any of it.\n\n' +
+        '(Note: the PDF "' + filename + '" was just downloaded to this device — attach it before sending.)' +
+        signature
+    );
+    window.location.href = 'mailto:' + clientEmail + '?subject=' + subject + '&body=' + body;
 }
 
 // Hide FAB on tabs without a calculation (Resources)
@@ -5549,7 +5625,7 @@ function generatePDF() {
 
     // Save
     const clientSlug = r.clientName ? r.clientName.replace(/\s+/g, '_') + '_' : '';
-    doc.save('Fairview_Mortgage_Breakdown_' + clientSlug + new Date().toISOString().slice(0,10) + '.pdf');
+    pdfDeliver(doc, 'Fairview_Mortgage_Breakdown_' + clientSlug + new Date().toISOString().slice(0,10) + '.pdf');
 }
 
 // =====================================================
@@ -5981,7 +6057,7 @@ function generateRenewalPDF() {
     }
 
     const clientSlug = r.clientName ? r.clientName.replace(/\s+/g, '_') + '_' : '';
-    doc.save('Fairview_Renewal_Analysis_' + clientSlug + new Date().toISOString().slice(0,10) + '.pdf');
+    pdfDeliver(doc, 'Fairview_Renewal_Analysis_' + clientSlug + new Date().toISOString().slice(0,10) + '.pdf');
 }
 
 // =====================================================
@@ -6314,7 +6390,7 @@ function generateAffordabilityPDF() {
     pdfFooter(doc, 'Affordability is an estimate based on B-20 stress test (qualifying rate = max of contract+2% or 5.25%) and standard GDS/TDS thresholds. Final qualification depends on lender review of credit, employment, and property details.', pageWidth, pageHeight, margin, contentWidth);
 
     const slug = (document.getElementById('clientName').value || '').replace(/\s+/g, '_');
-    doc.save('Fairview_Affordability_' + (slug ? slug + '_' : '') + new Date().toISOString().slice(0,10) + '.pdf');
+    pdfDeliver(doc, 'Fairview_Affordability_' + (slug ? slug + '_' : '') + new Date().toISOString().slice(0,10) + '.pdf');
 }
 
 // =====================================================
@@ -6667,7 +6743,7 @@ function generateRefinancePDF() {
     pdfFooter(doc, 'Penalty estimates use standard IRD and 3-month interest formulas. Confirm with the lender\'s payout statement. Refinance under Canadian rules is capped at 80% LTV of appraised value.', pageWidth, pageHeight, margin, contentWidth);
 
     const slug = (document.getElementById('clientName').value || '').replace(/\s+/g, '_');
-    doc.save('Fairview_Refinance_' + (slug ? slug + '_' : '') + new Date().toISOString().slice(0,10) + '.pdf');
+    pdfDeliver(doc, 'Fairview_Refinance_' + (slug ? slug + '_' : '') + new Date().toISOString().slice(0,10) + '.pdf');
 }
 
 // =====================================================
@@ -6903,7 +6979,7 @@ function generateConstructionPDF() {
     pdfFooter(doc, 'Draw schedule follows standard Canadian progress-advance practice. Lien holdback (per provincial Construction Lien Acts) is typically 10% and released after the lien period. Inspection fees and lender-specific draw structures may vary.', pageWidth, pageHeight, margin, contentWidth);
 
     const slug = (document.getElementById('clientName').value || '').replace(/\s+/g, '_');
-    doc.save('Fairview_Construction_' + (slug ? slug + '_' : '') + new Date().toISOString().slice(0,10) + '.pdf');
+    pdfDeliver(doc, 'Fairview_Construction_' + (slug ? slug + '_' : '') + new Date().toISOString().slice(0,10) + '.pdf');
 }
 
 // =====================================================
@@ -7137,7 +7213,7 @@ function generateClosingPDF() {
     pdfFooter(doc, 'Estimates only. Land transfer tax uses current provincial brackets; FTB rebates applied where applicable. CMHC PST applies in ON, QC, MB, SK and is payable at closing. GST/HST on new builds is not included. Confirm final figures with your lawyer and lender.', pageWidth, pageHeight, margin, contentWidth);
 
     const slug = (document.getElementById('clientName').value || '').replace(/\s+/g, '_');
-    doc.save('Fairview_ClosingCosts_' + (slug ? slug + '_' : '') + new Date().toISOString().slice(0,10) + '.pdf');
+    pdfDeliver(doc, 'Fairview_ClosingCosts_' + (slug ? slug + '_' : '') + new Date().toISOString().slice(0,10) + '.pdf');
 }
 
 // =====================================================
@@ -7475,7 +7551,7 @@ function generateInvestmentPDF() {
     pdfFooter(doc, 'Cap rate uses NOI / purchase price. DCR = NOI / annual debt service (CMHC commercial typically requires 1.10–1.20). Qualifying ratios depend on lender policy; rental offset (50%) and add-back (80%) are common methods.', pageWidth, pageHeight, margin, contentWidth);
 
     const slug = (document.getElementById('clientName').value || '').replace(/\s+/g, '_');
-    doc.save('Fairview_Investment_' + (slug ? slug + '_' : '') + new Date().toISOString().slice(0,10) + '.pdf');
+    pdfDeliver(doc, 'Fairview_Investment_' + (slug ? slug + '_' : '') + new Date().toISOString().slice(0,10) + '.pdf');
 }
 
 // =====================================================
@@ -7799,7 +7875,7 @@ function generateVacationPDF() {
     pdfFooter(doc, 'Type A (year-round, winterized) qualifies for insured financing from 5% down (tiered) under $1.5M; Type B (seasonal) typically requires 10%+ down, conventional only; rental use requires 20%+. Qualification shown at the B-20 stress rate; second-property policies vary by lender. Estimates only.', pageWidth, pageHeight, margin, contentWidth);
 
     const slug = (document.getElementById('clientName').value || '').replace(/\s+/g, '_');
-    doc.save('Fairview_VacationHome_' + (slug ? slug + '_' : '') + new Date().toISOString().slice(0, 10) + '.pdf');
+    pdfDeliver(doc, 'Fairview_VacationHome_' + (slug ? slug + '_' : '') + new Date().toISOString().slice(0, 10) + '.pdf');
 }
 
 // =====================================================
@@ -7967,7 +8043,7 @@ function generateReversePDF() {
     pdfFooter(doc, 'Estimate only - the available percentage depends on the lender\'s appraisal, property type, and location. Proceeds are tax-free loan advances and do not affect OAS/GIS. Interest compounds with no payments required; the loan is repaid when the home is sold, the owners move, or the last owner passes away. Major providers include a no-negative-equity guarantee. Setup costs (~$2,000-$3,000) not included. Independent legal advice is required.', pageWidth, pageHeight, margin, contentWidth);
 
     const slug = (document.getElementById('clientName').value || '').replace(/\s+/g, '_');
-    doc.save('Fairview_ReverseMortgage_' + (slug ? slug + '_' : '') + new Date().toISOString().slice(0, 10) + '.pdf');
+    pdfDeliver(doc, 'Fairview_ReverseMortgage_' + (slug ? slug + '_' : '') + new Date().toISOString().slice(0, 10) + '.pdf');
 }
 
 // =====================================================
@@ -8173,7 +8249,7 @@ function generatePortingPDF() {
     pdfFooter(doc, 'Blended rate is the standard weighted average; lender blend-and-extend formulas vary. Porting windows are typically 30-120 days between closings. Penalty estimates use standard 3-month interest and IRD formulas - confirm with the lender\'s payout statement. * = lower total cost over the remaining term.', pageWidth, pageHeight, margin, contentWidth);
 
     const slug = (document.getElementById('clientName').value || '').replace(/\s+/g, '_');
-    doc.save('Fairview_Porting_' + (slug ? slug + '_' : '') + new Date().toISOString().slice(0, 10) + '.pdf');
+    pdfDeliver(doc, 'Fairview_Porting_' + (slug ? slug + '_' : '') + new Date().toISOString().slice(0, 10) + '.pdf');
 }
 
 // =====================================================
@@ -8363,7 +8439,7 @@ function generateHelocPDF() {
     pdfFooter(doc, 'Federal B-20 limits: revolving HELOC portion max 65% of home value; combined secured borrowing max 80%. HELOC rates are variable (prime-linked) and qualification is stress-tested. Adding funds at refinance may trigger a prepayment penalty — see the Refinance analysis for the full cost picture. Estimates only.', pageWidth, pageHeight, margin, contentWidth);
 
     const slug = (document.getElementById('clientName').value || '').replace(/\s+/g, '_');
-    doc.save('Fairview_HomeEquity_' + (slug ? slug + '_' : '') + new Date().toISOString().slice(0, 10) + '.pdf');
+    pdfDeliver(doc, 'Fairview_HomeEquity_' + (slug ? slug + '_' : '') + new Date().toISOString().slice(0, 10) + '.pdf');
 }
 
 // =====================================================
@@ -8558,7 +8634,7 @@ function generateComparePDF() {
     pdfFooter(doc, 'Scenarios compared over the shortest common term so different term lengths are judged fairly. Variable-rate scenarios assume the entered rate holds for the term; the sensitivity table shows payment impact if rates move. Canadian semi-annual compounding throughout. * = lowest interest over the comparison window.', pageWidth, pageHeight, margin, contentWidth);
 
     const slug = (document.getElementById('clientName').value || '').replace(/\s+/g, '_');
-    doc.save('Fairview_ScenarioCompare_' + (slug ? slug + '_' : '') + new Date().toISOString().slice(0, 10) + '.pdf');
+    pdfDeliver(doc, 'Fairview_ScenarioCompare_' + (slug ? slug + '_' : '') + new Date().toISOString().slice(0, 10) + '.pdf');
 }
 
 // =====================================================
@@ -8781,7 +8857,7 @@ function generateFirstTimePDF() {
     pdfFooter(doc, 'Projections assume FHSA tax refunds are re-invested and a constant rate of return; returns are illustrative and not guaranteed. Program limits current as of 2026 — confirm eligibility with your Fairview broker.', pageWidth, pageHeight, margin, contentWidth);
 
     const slug = (document.getElementById('clientName').value || '').replace(/\s+/g, '_');
-    doc.save('Fairview_FirstTimeBuyer_' + (slug ? slug + '_' : '') + new Date().toISOString().slice(0, 10) + '.pdf');
+    pdfDeliver(doc, 'Fairview_FirstTimeBuyer_' + (slug ? slug + '_' : '') + new Date().toISOString().slice(0, 10) + '.pdf');
 }
 
 // =====================================================
@@ -8993,7 +9069,7 @@ function generateRentVsBuyPDF() {
     pdfFooter(doc, 'Owner net worth = home value less selling costs and mortgage balance, plus invested monthly savings when owning was cheaper. Renter net worth = down payment + closing costs invested at start, plus invested monthly difference when renting was cheaper. Property tax and insurance assumed to grow 2%/yr. Projections are illustrative only.', pageWidth, pageHeight, margin, contentWidth);
 
     const slug = (document.getElementById('clientName').value || '').replace(/\s+/g, '_');
-    doc.save('Fairview_RentVsBuy_' + (slug ? slug + '_' : '') + new Date().toISOString().slice(0, 10) + '.pdf');
+    pdfDeliver(doc, 'Fairview_RentVsBuy_' + (slug ? slug + '_' : '') + new Date().toISOString().slice(0, 10) + '.pdf');
 }
 
 // =====================================================
