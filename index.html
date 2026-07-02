@@ -1541,10 +1541,10 @@
             background: linear-gradient(135deg, #24507a 0%, var(--brand-navy) 100%);
         }
 
-        /* ---- Tab nav: tidy grid (16 tabs = 2 clean rows of 8) ---- */
+        /* ---- Tab nav: tidy grid (17 tabs = rows of 6) ---- */
         .tab-nav {
             display: grid;
-            grid-template-columns: repeat(8, 1fr);
+            grid-template-columns: repeat(6, 1fr);
             gap: 6px;
             padding: 8px;
             border: 1px solid var(--line);
@@ -1579,6 +1579,125 @@
         }
         @media (max-width: 560px) {
             .tab-nav { grid-template-columns: repeat(3, 1fr); }
+        }
+
+        /* ---- Live recalc: suppress re-entrance animation while editing ---- */
+        body.fv-live .results-section-active { animation: none !important; }
+
+        /* ---- BoC Rate Impact tab ---- */
+        .boc-slider-wrap { padding: 6px 4px 0; }
+        .boc-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: linear-gradient(90deg, #1d8348 0%, #cfd8e3 50%, #c0392b 100%);
+            outline: none;
+            cursor: pointer;
+        }
+        .boc-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: var(--brand-navy);
+            border: 3px solid #fff;
+            box-shadow: 0 2px 8px rgba(26,58,92,0.4);
+            cursor: grab;
+            transition: transform 0.15s;
+        }
+        .boc-slider::-webkit-slider-thumb:hover { transform: scale(1.15); }
+        .boc-slider::-webkit-slider-thumb:active { cursor: grabbing; transform: scale(1.2); }
+        .boc-slider::-moz-range-thumb {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--brand-navy);
+            border: 3px solid #fff;
+            box-shadow: 0 2px 8px rgba(26,58,92,0.4);
+            cursor: grab;
+        }
+        .boc-scale {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: #8a97a8;
+            margin-top: 6px;
+            font-variant-numeric: tabular-nums;
+        }
+        .boc-move-display {
+            text-align: center;
+            margin: 14px 0 4px;
+        }
+        .boc-move-display .mv {
+            font-size: 34px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            font-variant-numeric: tabular-nums;
+        }
+        .boc-move-display .mv.cut { color: #1d8348; }
+        .boc-move-display .mv.hike { color: #c0392b; }
+        .boc-move-display .mv.hold { color: var(--brand-navy); }
+        .boc-move-display .mv-sub { font-size: 13px; color: #6b7c93; margin-top: 2px; }
+        .boc-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin: 14px 0 4px;
+        }
+        .boc-chip {
+            border: 1.5px solid var(--line);
+            background: #fff;
+            border-radius: 999px;
+            padding: 7px 14px;
+            font-size: 12.5px;
+            font-weight: 600;
+            color: var(--brand-navy);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .boc-chip:hover { border-color: var(--brand-navy); transform: translateY(-1px); }
+        .boc-chip.sel {
+            background: linear-gradient(135deg, #24507a 0%, var(--brand-navy) 100%);
+            color: #fff;
+            border-color: var(--brand-navy);
+            box-shadow: 0 4px 10px rgba(26,58,92,0.25);
+        }
+        .boc-sched {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .boc-date {
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 7px 11px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #55677d;
+            background: #fff;
+            font-variant-numeric: tabular-nums;
+        }
+        .boc-date.past { opacity: 0.42; text-decoration: line-through; }
+        .boc-date.next {
+            background: linear-gradient(135deg, #24507a 0%, var(--brand-navy) 100%);
+            color: #fff;
+            border-color: var(--brand-navy);
+            box-shadow: 0 4px 10px rgba(26,58,92,0.22);
+        }
+        .boc-date.next .in-days { color: var(--brand-orange); font-weight: 800; }
+        .boc-ladder tr.sel td {
+            background: #eef4fb !important;
+            font-weight: 700;
+            box-shadow: inset 3px 0 0 var(--brand-orange);
+        }
+        @media (max-width: 560px) {
+            .boc-move-display .mv { font-size: 27px; }
+            .boc-chip { padding: 6px 10px; font-size: 11.5px; }
         }
 
         /* ---- Tab switch: gentle fade/rise ---- */
@@ -1734,6 +1853,10 @@
         <button class="tab-btn" data-tab="construction" onclick="switchTab('construction')">
             <svg class="tab-icon" viewBox="0 0 24 24"><rect x="3" y="11" width="7" height="10"/><rect x="14" y="3" width="7" height="18"/><line x1="6" y1="14" x2="7" y2="14"/><line x1="6" y1="17" x2="7" y2="17"/><line x1="17" y1="6" x2="18" y2="6"/><line x1="17" y1="9" x2="18" y2="9"/><line x1="17" y1="12" x2="18" y2="12"/></svg>
             <span class="tab-label">Construction</span>
+        </button>
+        <button class="tab-btn" data-tab="boc" onclick="switchTab('boc')">
+            <svg class="tab-icon" viewBox="0 0 24 24"><path d="M3 9l9-6 9 6"/><line x1="4" y1="9" x2="20" y2="9"/><line x1="6" y1="9" x2="6" y2="17"/><line x1="10" y1="9" x2="10" y2="17"/><line x1="14" y1="9" x2="14" y2="17"/><line x1="18" y1="9" x2="18" y2="17"/><line x1="3" y1="20" x2="21" y2="20"/></svg>
+            <span class="tab-label">BoC Impact</span>
         </button>
         <button class="tab-btn" data-tab="rateholds" onclick="switchTab('rateholds')">
             <svg class="tab-icon" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5"/><path d="M9 2h6"/><path d="M19 5l1.5 1.5"/></svg>
@@ -4639,6 +4762,184 @@
     <!-- ============ END NEW CONSTRUCTION TAB ============ -->
 
     <!-- ============ RATE HOLDS TAB ============ -->
+    <!-- ============ BANK OF CANADA RATE IMPACT TAB ============ -->
+    <div class="tab-content" id="tab-boc">
+        <div class="tab-intro">
+            <div class="intro-icon"><svg viewBox="0 0 24 24"><path d="M3 9l9-6 9 6"/><line x1="4" y1="9" x2="20" y2="9"/><line x1="6" y1="9" x2="6" y2="17"/><line x1="10" y1="9" x2="10" y2="17"/><line x1="14" y1="9" x2="14" y2="17"/><line x1="18" y1="9" x2="18" y2="17"/><line x1="3" y1="20" x2="21" y2="20"/></svg></div>
+            <div>
+                <h3>Bank of Canada Rate Impact</h3>
+                <p>The Bank of Canada sets its policy rate on 8 fixed dates a year, and the banks' prime rate moves with it within hours — taking every variable-rate mortgage and HELOC along for the ride. Drag the slider to see exactly what the next move would do to your payment.</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2><span class="h2-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></span>Where Rates Stand</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>BoC Policy Rate <span class="info" data-tip="The Bank of Canada's target for the overnight rate. Held at 2.25% since late 2025. Update this after each announcement.">?</span></label>
+                    <div class="input-suffix">
+                        <input type="number" id="bocPolicy" value="2.25" step="0.25" onchange="bocSyncPrime()">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Prime Rate <span class="info" data-tip="The chartered banks' prime has sat at the policy rate + 2.20% since 2020. Variable mortgages and HELOCs are priced off prime.">?</span></label>
+                    <div class="input-suffix">
+                        <input type="number" id="bocPrime" value="4.45" step="0.05">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Next Announcement</label>
+                    <input type="text" id="bocNextDate" value="--" readonly style="background:#f5f7fa; font-weight:700; color:#1a3a5c;">
+                </div>
+            </div>
+            <h2 class="subhead"><span class="h2-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>2026 Announcement Schedule</h2>
+            <div class="boc-sched" id="bocSchedule"></div>
+        </div>
+
+        <div class="card">
+            <h2><span class="h2-icon"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg></span>Your Variable-Rate Mortgage</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Mortgage Balance</label>
+                    <div class="input-prefix">
+                        <input type="number" id="bocBalance" value="400000" step="1000">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Your Variable Rate <span class="info" data-tip="Your contract rate today — usually quoted as prime minus a discount, e.g. prime − 0.85%.">?</span></label>
+                    <div class="input-suffix">
+                        <input type="number" id="bocMyRate" value="3.60" step="0.05">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Remaining Amortization (years)</label>
+                    <input type="number" id="bocAmort" value="25" min="1" max="30">
+                </div>
+                <div class="form-group">
+                    <label>Payment Frequency</label>
+                    <select id="bocFrequency">
+                        <option value="12">Monthly</option>
+                        <option value="26">Bi-Weekly</option>
+                        <option value="52">Weekly</option>
+                        <option value="24">Semi-Monthly</option>
+                        <option value="26.089">Accelerated Bi-Weekly</option>
+                        <option value="52.178">Accelerated Weekly</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Variable Type <span class="info" data-tip="Adjustable (ARM): your payment changes with every BoC move. Fixed-payment (VRM): your payment stays the same but the interest/principal split shifts — until you hit the trigger rate.">?</span></label>
+                    <select id="bocType">
+                        <option value="arm">Adjustable payment (ARM)</option>
+                        <option value="vrm">Fixed payment (VRM)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="calculateBoc()">Calculate Impact</button>
+                <button class="btn btn-secondary" onclick="generateBocPDF()">Download PDF</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2><span class="h2-icon"><svg viewBox="0 0 24 24"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="14 7 21 7 21 14"/></svg></span>What If the Bank Moves?</h2>
+            <div class="boc-move-display">
+                <div class="mv hold" id="bocMoveVal">0.00%</div>
+                <div class="mv-sub" id="bocMoveSub">No change to the policy rate</div>
+            </div>
+            <div class="boc-slider-wrap">
+                <input type="range" class="boc-slider" id="bocSlider" min="-1" max="1" step="0.25" value="-0.25" oninput="calculateBoc()">
+                <div class="boc-scale">
+                    <span>−1.00%</span><span>−0.50%</span><span>Hold</span><span>+0.50%</span><span>+1.00%</span>
+                </div>
+            </div>
+            <div class="boc-chips" id="bocChips">
+                <button class="boc-chip" data-move="-0.5" onclick="bocSetMove(-0.5)">Two cuts (−0.50%)</button>
+                <button class="boc-chip" data-move="-0.25" onclick="bocSetMove(-0.25)">One cut (−0.25%)</button>
+                <button class="boc-chip" data-move="0" onclick="bocSetMove(0)">Hold</button>
+                <button class="boc-chip" data-move="0.25" onclick="bocSetMove(0.25)">One hike (+0.25%)</button>
+                <button class="boc-chip" data-move="0.5" onclick="bocSetMove(0.5)">Two hikes (+0.50%)</button>
+            </div>
+        </div>
+
+        <div id="bocResultsSection">
+            <div class="snapshot">
+                <div class="lead">
+                    <div class="eyebrow" id="bocSnapLabel">Your New Payment</div>
+                    <div class="big" id="bocSnapPayment">--</div>
+                    <div class="lead-sub" id="bocSnapPaymentSub">per period</div>
+                </div>
+                <div class="stat">
+                    <div class="lbl">Payment Change</div>
+                    <div class="val" id="bocSnapChange">--</div>
+                    <div class="delta" id="bocSnapChangeSub">per payment</div>
+                </div>
+                <div class="stat">
+                    <div class="lbl">Per Year</div>
+                    <div class="val" id="bocSnapYear">--</div>
+                    <div class="delta" id="bocSnapYearSub">cash-flow impact</div>
+                </div>
+                <div class="stat">
+                    <div class="lbl">Your New Rate</div>
+                    <div class="val" id="bocSnapRate">--</div>
+                    <div class="delta" id="bocSnapRateSub">prime-linked</div>
+                </div>
+            </div>
+
+            <div class="card" id="bocVrmCard" style="display:none;">
+                <h2><span class="h2-icon"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>Fixed-Payment (VRM) Breakdown</h2>
+                <div class="results-grid">
+                    <div class="result-box">
+                        <div class="label">Interest Portion</div>
+                        <div class="value" id="bocVrmInterest">--</div>
+                        <div class="sub">of each payment, after the move</div>
+                    </div>
+                    <div class="result-box">
+                        <div class="label">Principal Portion</div>
+                        <div class="value" id="bocVrmPrincipal">--</div>
+                        <div class="sub">what still pays down the mortgage</div>
+                    </div>
+                    <div class="result-box">
+                        <div class="label">Effective Amortization</div>
+                        <div class="value" id="bocVrmAmort">--</div>
+                        <div class="sub" id="bocVrmAmortSub">at the new rate, same payment</div>
+                    </div>
+                    <div class="result-box highlight">
+                        <div class="label">Trigger Rate</div>
+                        <div class="value" id="bocVrmTrigger">--</div>
+                        <div class="sub" id="bocVrmTriggerSub">where payment stops covering interest</div>
+                    </div>
+                </div>
+                <div id="bocTriggerWarning" class="penalty-notice hidden">
+                    <strong>Trigger rate breached in this scenario</strong>
+                    <p id="bocTriggerWarningText">--</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2><span class="h2-icon"><svg viewBox="0 0 24 24"><line x1="6" y1="20" x2="6" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="18" y1="20" x2="18" y2="14"/></svg></span>The Full Rate Ladder</h2>
+                <p style="font-size:13px; color:#6b7c93; margin-bottom:12px;">Every possible path from two cuts to two hikes and beyond — your selected scenario is highlighted.</p>
+                <div style="overflow-x:auto;">
+                    <table class="boc-ladder">
+                        <thead>
+                            <tr><th>BoC Move</th><th>Policy Rate</th><th>Prime</th><th>Your Rate</th><th id="bocLadderPmtHead">Your Payment</th><th>Monthly Change</th></tr>
+                        </thead>
+                        <tbody id="bocLadderBody"></tbody>
+                    </table>
+                </div>
+
+                <div style="background:#f0f6ff; border:1px solid #b9d2ec; border-radius:8px; padding:14px 16px; margin-top:16px;">
+                    <strong style="color:#1a3a5c; font-size:13.5px;">On a fixed-rate mortgage?</strong>
+                    <p style="font-size:13px; margin-top:4px; color:#3d4f63;">BoC moves don't change your payment until renewal — fixed rates follow Government of Canada bond yields instead, which move on rate <em>expectations</em>. If your renewal is coming up, check the <a href="#" onclick="switchTab('renewal'); return false;" style="color:#1a3a5c; font-weight:700;">Renewal tab</a> to see what today's rates would do, and use <a href="#" onclick="switchTab('rateholds'); return false;" style="color:#1a3a5c; font-weight:700;">Rate Holds</a> to lock one in before the next announcement.</p>
+                </div>
+
+                <div class="disclaimer">
+                    * Prime typically moves the same day as the policy rate by the same amount (prime = policy + 2.20% at every major bank since 2020), but lenders are not obligated to match. Payment estimates use Canadian semi-annual compounding. Fixed-payment (VRM) trigger rules vary by lender — some allow negative amortization, others force a payment increase. This is an estimate only, not advice or a commitment. Data: Bank of Canada published 2026 announcement schedule.
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- ============ END BANK OF CANADA RATE IMPACT TAB ============ -->
+
     <div class="tab-content" id="tab-rateholds">
         <div class="tab-intro">
             <div class="intro-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5"/><path d="M9 2h6"/><path d="M19 5l1.5 1.5"/></svg></div>
@@ -4926,6 +5227,7 @@ function runActiveCalculate() {
         investment: 'calculateInvestment',
         vacation: 'calculateVacation',
         construction: 'calculateConstruction',
+        boc: 'calculateBoc',
         rateholds: 'renderRateHolds'
         // 'resources' has no calc — FAB Calculate is a no-op there.
     };
@@ -4953,6 +5255,7 @@ const pdfFns = {
     investment: 'generateInvestmentPDF',
     vacation: 'generateVacationPDF',
     construction: 'generateConstructionPDF',
+    boc: 'generateBocPDF',
     rateholds: 'generateRateHoldsPDF'
 };
 
@@ -5501,7 +5804,7 @@ function calculate() {
     // vs-last-calc snapshot
     recordCalcSnapshot('purchase', { payment });
 
-    rs.scrollIntoView({ behavior: 'smooth' });
+    if (!document.body.classList.contains('fv-live')) rs.scrollIntoView({ behavior: 'smooth' });
 }
 
 function generatePDF() {
@@ -5747,6 +6050,7 @@ function switchTab(tabName) {
     btn.classList.add('active');
     document.getElementById('tab-' + tabName).classList.add('active');
     activeTab = tabName;
+    document.body.classList.remove('fv-live'); // let the next tab's results animate in again
     updateFabVisibility();
 }
 
@@ -5931,7 +6235,7 @@ function renderRenewal() {
         document.getElementById('snapRenNetDelta').className = 'delta ' + (netBenefit > 0 ? 'up' : 'down');
     }
 
-    resultsSection.scrollIntoView({ behavior: 'smooth' });
+    if (!document.body.classList.contains('fv-live')) resultsSection.scrollIntoView({ behavior: 'smooth' });
 }
 
 // =====================================================
@@ -6398,7 +6702,7 @@ function calculateAffordability() {
     void rs.offsetWidth;
     rs.classList.add('results-section-active');
     document.getElementById('fab').classList.remove('hidden-fab');
-    rs.scrollIntoView({ behavior: 'smooth' });
+    if (!document.body.classList.contains('fv-live')) rs.scrollIntoView({ behavior: 'smooth' });
 }
 
 function generateAffordabilityPDF() {
@@ -6700,6 +7004,12 @@ function renderRefinance() {
     document.getElementById('refVerdictNet').textContent = (r.netBenefit >= 0 ? '+' : '') + formatCurrencyShort(r.netBenefit);
     document.getElementById('refVerdictCash').textContent = (r.cashFreed >= 0 ? '+' : '') + formatCurrencyShort(r.cashFreed);
 
+    // Celebrate a clearly-winning refinance — once per session.
+    if (r.netBenefit > 5000 && !window.__fvConfettiFired) {
+        window.__fvConfettiFired = true;
+        fireConfetti();
+    }
+
     // Compare panels (Before vs After)
     document.getElementById('refCmpBeforeRate').textContent = r.currentRate.toFixed(2) + '%';
     document.getElementById('refCmpBeforeBal').textContent = formatCurrency(r.currentBalance);
@@ -6716,7 +7026,7 @@ function renderRefinance() {
     void rs.offsetWidth;
     rs.classList.add('results-section-active');
     document.getElementById('fab').classList.remove('hidden-fab');
-    rs.scrollIntoView({ behavior: 'smooth' });
+    if (!document.body.classList.contains('fv-live')) rs.scrollIntoView({ behavior: 'smooth' });
 }
 
 function generateRefinancePDF() {
@@ -6986,7 +7296,7 @@ function calculateConstruction() {
     void rs.offsetWidth;
     rs.classList.add('results-section-active');
     document.getElementById('fab').classList.remove('hidden-fab');
-    rs.scrollIntoView({ behavior: 'smooth' });
+    if (!document.body.classList.contains('fv-live')) rs.scrollIntoView({ behavior: 'smooth' });
 }
 
 function generateConstructionPDF() {
@@ -7238,7 +7548,7 @@ function calculateClosing() {
     void rs.offsetWidth;
     rs.classList.add('results-section-active');
     document.getElementById('fab').classList.remove('hidden-fab');
-    document.getElementById('clcResults').scrollIntoView({ behavior: 'smooth' });
+    if (!document.body.classList.contains('fv-live')) document.getElementById('clcResults').scrollIntoView({ behavior: 'smooth' });
 }
 
 function generateClosingPDF() {
@@ -7522,7 +7832,7 @@ function calculateInvestment() {
     void rs.offsetWidth;
     rs.classList.add('results-section-active');
     document.getElementById('fab').classList.remove('hidden-fab');
-    rs.scrollIntoView({ behavior: 'smooth' });
+    if (!document.body.classList.contains('fv-live')) rs.scrollIntoView({ behavior: 'smooth' });
 }
 
 function generateInvestmentPDF() {
@@ -8690,6 +9000,302 @@ function generateHelocPDF() {
 }
 
 // =====================================================
+// BANK OF CANADA RATE IMPACT
+// =====================================================
+let bocResults = null;
+
+// Official BoC fixed announcement dates for 2026 (published Aug 2025).
+const BOC_DATES_2026 = ['2026-01-28', '2026-03-18', '2026-04-29', '2026-06-10', '2026-07-15', '2026-09-02', '2026-10-28', '2026-12-09'];
+const BOC_PRIME_SPREAD = 2.20; // prime = policy + 2.20% at every major bank since 2020
+
+function bocNextAnnouncement() {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    for (const iso of BOC_DATES_2026) {
+        const d = new Date(iso + 'T00:00:00');
+        if (d >= today) return { d, iso, days: Math.round((d - today) / 86400000) };
+    }
+    return null;
+}
+
+function bocRenderSchedule() {
+    const next = bocNextAnnouncement();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    document.getElementById('bocSchedule').innerHTML = BOC_DATES_2026.map(iso => {
+        const d = new Date(iso + 'T00:00:00');
+        const label = d.toLocaleDateString('en-CA', { month: 'short', day: 'numeric' });
+        const isNext = next && next.iso === iso;
+        const cls = isNext ? 'boc-date next' : (d < today ? 'boc-date past' : 'boc-date');
+        const chip = isNext ? ' <span class="in-days">' + (next.days === 0 ? 'today!' : 'in ' + next.days + ' day' + (next.days === 1 ? '' : 's')) + '</span>' : '';
+        return '<span class="' + cls + '">' + label + chip + '</span>';
+    }).join('');
+    const nd = document.getElementById('bocNextDate');
+    if (next) {
+        nd.value = next.d.toLocaleDateString('en-CA', { month: 'long', day: 'numeric', year: 'numeric' }) +
+            (next.days === 0 ? ' — today' : ' — ' + next.days + ' day' + (next.days === 1 ? '' : 's'));
+    } else {
+        nd.value = '2027 schedule TBA';
+    }
+}
+
+function bocSyncPrime() {
+    const policy = parseFloat(document.getElementById('bocPolicy').value) || 0;
+    document.getElementById('bocPrime').value = (policy + BOC_PRIME_SPREAD).toFixed(2);
+    calculateBoc();
+}
+
+function bocSetMove(v) {
+    document.getElementById('bocSlider').value = v;
+    calculateBoc();
+}
+
+// Effective amortization (years) for a given payment at a given rate; null = never pays off.
+function bocEffectiveAmort(balance, payment, annualRate, paymentsPerYear) {
+    const i = getEffectiveRate(annualRate, paymentsPerYear);
+    if (i <= 0) return balance / payment / paymentsPerYear;
+    if (payment <= balance * i) return null;
+    return -Math.log(1 - i * balance / payment) / Math.log(1 + i) / paymentsPerYear;
+}
+
+function calculateBoc() {
+    const policy = parseFloat(document.getElementById('bocPolicy').value) || 0;
+    const prime = parseFloat(document.getElementById('bocPrime').value) || 0;
+    const balance = parseFloat(document.getElementById('bocBalance').value) || 0;
+    const myRate = parseFloat(document.getElementById('bocMyRate').value) || 0;
+    const amort = Math.max(1, parseFloat(document.getElementById('bocAmort').value) || 25);
+    const freqSelect = document.getElementById('bocFrequency');
+    const freqVal = parseFloat(freqSelect.value);
+    const freqLabel = freqSelect.options[freqSelect.selectedIndex].text;
+    const { paymentsPerYear, isAccelerated } = resolveFrequency(freqVal);
+    const type = document.getElementById('bocType').value;
+    const move = parseFloat(document.getElementById('bocSlider').value) || 0;
+
+    const pay = (rate) => (balance > 0 && rate > 0)
+        ? calculatePayment(balance, rate / 100, amort, paymentsPerYear, isAccelerated)
+        : 0;
+
+    const curPayment = pay(myRate);
+    const newRate = Math.max(0, myRate + move);
+    const newPayment = pay(newRate);
+    const perPayment = newPayment - curPayment;
+    const perMonth = perPayment * paymentsPerYear / 12;
+    const perYear = perPayment * paymentsPerYear;
+
+    // VRM: payment stays at curPayment — split shifts, amortization stretches.
+    const iNew = getEffectiveRate(newRate / 100, paymentsPerYear);
+    const vrmInterest = balance * iNew;
+    const vrmPrincipal = curPayment - vrmInterest;
+    const vrmAmort = curPayment > 0 ? bocEffectiveAmort(balance, curPayment, newRate / 100, paymentsPerYear) : null;
+    // Trigger rate: annual rate where the whole payment is interest.
+    const triggerRate = (balance > 0 && curPayment > 0)
+        ? 2 * (Math.pow(1 + curPayment / balance, paymentsPerYear / 2) - 1) * 100
+        : 0;
+    const triggerHit = vrmPrincipal <= 0;
+
+    // Rate ladder: −1.00% to +1.00% in 0.25 steps.
+    const ladder = [];
+    for (let bps = -100; bps <= 100; bps += 25) {
+        const m = bps / 100;
+        const r = Math.max(0, myRate + m);
+        const p = pay(r);
+        ladder.push({
+            move: m,
+            policy: Math.max(0, policy + m),
+            prime: Math.max(0, prime + m),
+            rate: r,
+            payment: p,
+            perMonth: (p - curPayment) * paymentsPerYear / 12
+        });
+    }
+
+    bocResults = {
+        policy, prime, balance, myRate, amort, freqLabel, paymentsPerYear, type, move,
+        curPayment, newRate, newPayment, perPayment, perMonth, perYear,
+        vrmInterest, vrmPrincipal, vrmAmort, triggerRate, triggerHit, ladder,
+        next: bocNextAnnouncement()
+    };
+    renderBoc();
+}
+
+function renderBoc() {
+    const r = bocResults;
+    bocRenderSchedule();
+
+    // Move display + chips
+    const mv = document.getElementById('bocMoveVal');
+    const sign = r.move > 0 ? '+' : r.move < 0 ? '−' : '';
+    mv.textContent = sign + Math.abs(r.move).toFixed(2) + '%';
+    mv.className = 'mv ' + (r.move < 0 ? 'cut' : r.move > 0 ? 'hike' : 'hold');
+    const steps = Math.round(Math.abs(r.move) / 0.25);
+    document.getElementById('bocMoveSub').textContent =
+        r.move === 0 ? 'No change to the policy rate'
+        : steps + ' quarter-point ' + (r.move < 0 ? 'cut' : 'hike') + (steps > 1 ? 's' : '') +
+          ' → policy ' + Math.max(0, r.policy + r.move).toFixed(2) + '%, prime ' + Math.max(0, r.prime + r.move).toFixed(2) + '%';
+    document.querySelectorAll('#bocChips .boc-chip').forEach(c => {
+        c.classList.toggle('sel', parseFloat(c.dataset.move) === r.move);
+    });
+
+    // Snapshot
+    const isVrm = r.type === 'vrm';
+    document.getElementById('bocSnapLabel').textContent = isVrm ? 'Your Payment (unchanged)' : 'Your New Payment';
+    setSnap('bocSnapPayment', isVrm ? r.curPayment : r.newPayment, formatCurrency);
+    document.getElementById('bocSnapPaymentSub').textContent = r.freqLabel.toLowerCase() + ' • was ' + formatCurrency(r.curPayment);
+    const chg = document.getElementById('bocSnapChange');
+    if (isVrm) {
+        chg.textContent = '$0.00';
+        document.getElementById('bocSnapChangeSub').textContent = 'payment fixed — split shifts';
+        document.getElementById('bocSnapYear').textContent = formatCurrencyShort(Math.abs(r.vrmPrincipal * r.paymentsPerYear));
+        document.getElementById('bocSnapYearSub').textContent = r.vrmPrincipal >= 0 ? 'still going to principal / yr' : 'shortfall vs interest / yr';
+    } else {
+        chg.textContent = (r.perPayment >= 0 ? '+' : '−') + formatCurrency(Math.abs(r.perPayment));
+        document.getElementById('bocSnapChangeSub').textContent = 'per payment (' + (r.perMonth >= 0 ? '+' : '−') + formatCurrency(Math.abs(r.perMonth)) + '/mo)';
+        document.getElementById('bocSnapYear').textContent = (r.perYear >= 0 ? '+' : '−') + formatCurrencyShort(Math.abs(r.perYear));
+        document.getElementById('bocSnapYearSub').textContent = r.perYear <= 0 ? 'back in your pocket' : 'added cost per year';
+    }
+    chg.style.color = (isVrm ? 0 : r.perPayment) > 0 ? '#ffb3a7' : '';
+    document.getElementById('bocSnapRate').textContent = r.newRate.toFixed(2) + '%';
+    document.getElementById('bocSnapRateSub').textContent = 'was ' + r.myRate.toFixed(2) + '%';
+
+    // VRM card
+    document.getElementById('bocVrmCard').style.display = isVrm ? '' : 'none';
+    if (isVrm) {
+        document.getElementById('bocVrmInterest').textContent = formatCurrency(Math.min(r.vrmInterest, r.curPayment));
+        document.getElementById('bocVrmPrincipal').textContent = formatCurrency(Math.max(0, r.vrmPrincipal));
+        document.getElementById('bocVrmAmort').textContent = r.vrmAmort === null ? 'Never' : r.vrmAmort.toFixed(1) + ' yrs';
+        document.getElementById('bocVrmAmortSub').textContent = r.vrmAmort === null
+            ? 'payment no longer covers interest'
+            : 'at the new rate, same payment (was ' + r.amort + ' yrs)';
+        document.getElementById('bocVrmTrigger').textContent = r.triggerRate.toFixed(2) + '%';
+        document.getElementById('bocVrmTriggerSub').textContent =
+            (r.newRate < r.triggerRate ? (r.triggerRate - r.newRate).toFixed(2) + '% of room left' : 'reached in this scenario');
+        const warn = document.getElementById('bocTriggerWarning');
+        if (r.triggerHit) {
+            warn.classList.remove('hidden');
+            document.getElementById('bocTriggerWarningText').textContent =
+                'At ' + r.newRate.toFixed(2) + '%, your fixed payment of ' + formatCurrency(r.curPayment) + ' no longer covers the interest (' +
+                formatCurrency(r.vrmInterest) + '). Your lender would require a higher payment, a lump-sum, or a conversion to fixed — this is exactly the moment to call your broker.';
+        } else {
+            warn.classList.add('hidden');
+        }
+    }
+
+    // Ladder
+    document.getElementById('bocLadderPmtHead').textContent = isVrm ? 'Payment If Adjusted' : 'Your Payment';
+    document.getElementById('bocLadderBody').innerHTML = r.ladder.map(row => {
+        const sel = row.move === r.move ? ' class="sel"' : '';
+        const mvTxt = row.move === 0 ? 'Hold' : (row.move > 0 ? '+' : '−') + Math.abs(row.move).toFixed(2) + '%';
+        const chgTxt = row.move === 0 ? '—' : (row.perMonth >= 0 ? '+' : '−') + formatCurrency(Math.abs(row.perMonth));
+        const chgColor = row.perMonth > 0.005 ? '#c0392b' : row.perMonth < -0.005 ? '#1d8348' : '#6b7c93';
+        return '<tr' + sel + '><td style="font-weight:700; color:' + (row.move < 0 ? '#1d8348' : row.move > 0 ? '#c0392b' : '#1a3a5c') + ';">' + mvTxt + '</td>' +
+            '<td>' + row.policy.toFixed(2) + '%</td><td>' + row.prime.toFixed(2) + '%</td><td><strong>' + row.rate.toFixed(2) + '%</strong></td>' +
+            '<td>' + formatCurrency(row.payment) + '</td>' +
+            '<td style="color:' + chgColor + '; font-weight:600;">' + chgTxt + '</td></tr>';
+    }).join('');
+}
+
+function generateBocPDF() {
+    if (!bocResults) calculateBoc();
+    const r = bocResults;
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('p', 'mm', 'letter');
+    const pageWidth = 215.9, pageHeight = 279.4, margin = 18;
+    const contentWidth = pageWidth - margin * 2;
+    const blue = [26, 58, 92], darkText = [30, 30, 30];
+    const lightGray = [245, 247, 250], white = [255, 255, 255];
+
+    let y = pdfHeader(doc, 'Bank of Canada Rate Impact', margin, pageWidth);
+    y = pdfClientBlock(doc, y, margin);
+
+    doc.setFontSize(12);
+    doc.setTextColor(...blue);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Where Rates Stand', margin, y);
+    y += 3;
+    doc.autoTable({
+        startY: y,
+        body: [
+            ['BoC Policy Rate', r.policy.toFixed(2) + '%', 'Prime Rate', r.prime.toFixed(2) + '%'],
+            ['Your Variable Rate', r.myRate.toFixed(2) + '%', 'Mortgage Balance', formatCurrency(r.balance)],
+            ['Payment (' + r.freqLabel + ')', formatCurrency(r.curPayment), 'Next Announcement', r.next ? r.next.d.toLocaleDateString('en-CA', { month: 'long', day: 'numeric', year: 'numeric' }) : '2027 TBA']
+        ],
+        theme: 'plain',
+        styles: { fontSize: 9, cellPadding: 2.5, textColor: darkText },
+        columnStyles: {
+            0: { fontStyle: 'bold', textColor: blue, cellWidth: 48 }, 1: { cellWidth: 44 },
+            2: { fontStyle: 'bold', textColor: blue, cellWidth: 48 }, 3: { cellWidth: 44 }
+        },
+        margin: { left: margin, right: margin },
+        alternateRowStyles: { fillColor: lightGray }
+    });
+    y = doc.lastAutoTable.finalY + 8;
+
+    const isVrm = r.type === 'vrm';
+    doc.setFontSize(12);
+    doc.setTextColor(...blue);
+    doc.setFont('helvetica', 'bold');
+    const mvTxt = r.move === 0 ? 'a hold' : 'a ' + Math.abs(r.move).toFixed(2) + '% ' + (r.move < 0 ? 'cut' : 'hike');
+    doc.text('Selected Scenario: ' + mvTxt, margin, y);
+    y += 3;
+    const scenarioBody = isVrm
+        ? [
+            ['Payment (unchanged)', formatCurrency(r.curPayment), 'New Rate', r.newRate.toFixed(2) + '%'],
+            ['Interest Portion', formatCurrency(Math.min(r.vrmInterest, r.curPayment)), 'Principal Portion', formatCurrency(Math.max(0, r.vrmPrincipal))],
+            ['Effective Amortization', r.vrmAmort === null ? 'Never pays off' : r.vrmAmort.toFixed(1) + ' yrs', 'Trigger Rate', r.triggerRate.toFixed(2) + '%' + (r.triggerHit ? ' — BREACHED' : '')]
+        ]
+        : [
+            ['New Payment', formatCurrency(r.newPayment), 'New Rate', r.newRate.toFixed(2) + '%'],
+            ['Change per Payment', (r.perPayment >= 0 ? '+' : '-') + formatCurrency(Math.abs(r.perPayment)), 'Change per Month', (r.perMonth >= 0 ? '+' : '-') + formatCurrency(Math.abs(r.perMonth))],
+            ['Change per Year', (r.perYear >= 0 ? '+' : '-') + formatCurrency(Math.abs(r.perYear)), 'Variable Type', 'Adjustable payment (ARM)']
+        ];
+    doc.autoTable({
+        startY: y,
+        body: scenarioBody,
+        theme: 'plain',
+        styles: { fontSize: 9, cellPadding: 2.5, textColor: darkText },
+        columnStyles: {
+            0: { fontStyle: 'bold', textColor: blue, cellWidth: 48 }, 1: { cellWidth: 44 },
+            2: { fontStyle: 'bold', textColor: blue, cellWidth: 48 }, 3: { cellWidth: 44 }
+        },
+        margin: { left: margin, right: margin },
+        alternateRowStyles: { fillColor: lightGray }
+    });
+    y = doc.lastAutoTable.finalY + 8;
+
+    doc.setFontSize(12);
+    doc.setTextColor(...blue);
+    doc.setFont('helvetica', 'bold');
+    doc.text('The Full Rate Ladder', margin, y);
+    y += 3;
+    doc.autoTable({
+        startY: y,
+        head: [['BoC Move', 'Policy', 'Prime', 'Your Rate', 'Payment', 'Monthly Change']],
+        body: r.ladder.map(row => [
+            row.move === 0 ? 'Hold' : (row.move > 0 ? '+' : '-') + Math.abs(row.move).toFixed(2) + '%',
+            row.policy.toFixed(2) + '%', row.prime.toFixed(2) + '%', row.rate.toFixed(2) + '%',
+            formatCurrency(row.payment),
+            row.move === 0 ? '--' : (row.perMonth >= 0 ? '+' : '-') + formatCurrency(Math.abs(row.perMonth))
+        ]),
+        theme: 'striped',
+        headStyles: { fillColor: blue, textColor: white, fontSize: 9 },
+        styles: { fontSize: 9, cellPadding: 2.2, textColor: darkText, halign: 'right' },
+        columnStyles: { 0: { halign: 'left', fontStyle: 'bold' } },
+        didParseCell: (data) => {
+            if (data.section === 'body' && r.ladder[data.row.index] && r.ladder[data.row.index].move === r.move) {
+                data.cell.styles.fillColor = [238, 244, 251];
+                data.cell.styles.fontStyle = 'bold';
+            }
+        },
+        margin: { left: margin, right: margin }
+    });
+
+    pdfFooter(doc, 'Prime typically follows the BoC policy rate one-for-one (policy + 2.20% since 2020) but lenders are not obligated to match. Payments use Canadian semi-annual compounding. VRM trigger treatment varies by lender. Announcement dates: Bank of Canada published 2026 schedule. Estimates only — not advice or a commitment to lend.', pageWidth, pageHeight, margin, contentWidth);
+
+    const slug = (document.getElementById('clientName').value || '').replace(/\s+/g, '_');
+    pdfDeliver(doc, 'Fairview_BoC_Rate_Impact_' + (slug ? slug + '_' : '') + new Date().toISOString().slice(0, 10) + '.pdf');
+}
+
+// =====================================================
 // SCENARIO COMPARE
 // =====================================================
 let compareResults = null;
@@ -9527,7 +10133,7 @@ function exportScheduleCSV() {
 // SWIPE BETWEEN TABS (touch only)
 // =====================================================
 (function setupSwipe() {
-    const order = ['purchase', 'affordability', 'closing', 'renewal', 'refinance', 'investment', 'construction', 'resources'];
+    const order = ['purchase', 'compare', 'affordability', 'firsttime', 'rentvsbuy', 'closing', 'renewal', 'porting', 'refinance', 'heloc', 'reverse', 'investment', 'vacation', 'construction', 'boc', 'rateholds', 'resources'];
     let startX = 0, startY = 0, startT = 0;
     const main = document.querySelector('.container');
     if (!main) return;
@@ -9601,6 +10207,33 @@ function showToast(msg) {
     document.addEventListener('touchstart', onStart, { passive: true });
     document.addEventListener('touchend', onCancel);
     document.addEventListener('touchcancel', onCancel);
+})();
+
+// =====================================================
+// LIVE RECALCULATION — results update as you type
+// =====================================================
+(function setupLiveRecalc() {
+    const skipTabs = { rateholds: 1, resources: 1 };
+    let timer = null;
+    let toastShown = false;
+    function onEdit(e) {
+        const el = e.target;
+        if (!el || !el.matches || !el.matches('input, select')) return;
+        if (el.type === 'range') return;            // sliders recalc via their own oninput
+        if (skipTabs[activeTab]) return;
+        if (!el.closest('.tab-content.active')) return; // client/broker info panels stay manual
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+            document.body.classList.add('fv-live'); // suppress result re-entrance animation
+            runActiveCalculate();
+            if (!toastShown) {
+                toastShown = true;
+                showToast('Results update live as you type');
+            }
+        }, 350);
+    }
+    document.addEventListener('input', onEdit, true);
+    document.addEventListener('change', onEdit, true);
 })();
 
 // =====================================================
@@ -9715,6 +10348,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (el) el.addEventListener('change', saveBrokerInfo);
     });
     calculate();
+    calculateBoc();
     renderDebts();
     document.getElementById('clcProvince').addEventListener('change', showHideTorontoOption);
     showHideTorontoOption();
